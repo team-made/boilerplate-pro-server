@@ -1,14 +1,19 @@
 {
   "name": "boilerplaterproserver",
   "version": "1",
+  "node":"8.6",
   "description": "the backen for boilerplatepro",
-  "main": "index.js",
+  "main": "server.js",
   "author": "Evans Stepanov <evans@stepanov.email>",
   "license": "MIT",
+  "scripts": {
+    "start": "NODE_ENV='development' nodemon server"
+  },
   "dependencies": {
     "axios": "^0.17.1",
     "body-parser": "^1.18.2",
     "express": "^4.16.2",
-    "firebase-admin": "^5.5.0"
+    "firebase-admin": "^5.5.0",
+    "morgan": "^1.9.0"
   }
 }
