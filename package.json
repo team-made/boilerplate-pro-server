@@ -1,0 +1,14 @@
+{
+  "name": "boilerplaterproserver",
+  "version": "1",
+  "description": "the backen for boilerplatepro",
+  "main": "index.js",
+  "author": "Evans Stepanov <evans@stepanov.email>",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.17.1",
+    "body-parser": "^1.18.2",
+    "express": "^4.16.2",
+    "firebase-admin": "^5.5.0"
+  }
+}
