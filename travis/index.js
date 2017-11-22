@@ -5,7 +5,7 @@ const axios = require('axios')
 
 router.post('/', (request, response, next) => {
   console.log('req:', request.body)
-  const token = request.body.token
+  const { token, repo } = request.body
   const config = {
     headers: {
       Accept: 'application/vnd.travis-ci.2+json',
@@ -22,7 +22,15 @@ router.post('/', (request, response, next) => {
     )
     .then(res => {
       console.log('Travis response token:', res.data.access_token)
-      response.status(200).send(res.data)
+      return res.data.access_token
+    })
+    .then(travisToken => {
+      const authConfig = Object.assign({}, config, {
+        headers: { Authorization: `token ${travisToken}` }
+      })
+      axios
+        .get('https://api.travis-ci.org/accounts', authConfig)
+        .then(res => console.log(res) || response.status(200).send(res.data))
     })
     .catch(next)
 })
