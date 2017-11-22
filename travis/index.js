@@ -25,12 +25,10 @@ router.post('/', (request, response, next) => {
       return res.data.access_token
     })
     .then(travisToken => {
-      const authConfig = Object.assign({}, config, {
-        headers: { Authorization: `token ${travisToken}` }
-      })
-      console.log('auth', authConfig)
+      config.headers.Authorizations = `token ${travisToken}`
+      console.log('auth', config)
       return axios
-        .get(`https://api.travis-ci.org/repos/${username}/${repo}`, authConfig)
+        .get(`https://api.travis-ci.org/repos/${username}/${repo}`, config)
         .then(res => console.log(res) || response.status(200).send(res.data))
     })
     .catch(next)
