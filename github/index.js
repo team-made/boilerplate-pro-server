@@ -1,9 +1,10 @@
 const router = require('express').Router()
 const axios = require('axios')
+const { getGitHub, search, getLanguages, getRateLimit } = require('./utils')
 const admin = require('firebase-admin')
 
 // firebase setup
-var serviceAccount = require('./secrets.json')
+var serviceAccount = require('../secrets.json')
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 })
@@ -17,42 +18,23 @@ const cacheDate =
 
 let interval
 
-// github
-var cred = require('./gitsecrets.json')
-async function getGitHub(url, options) {
-  console.log('get git route:', url)
-  let items
-  return axios
-    .get(`https://api.github.com${url}`, options)
-    .then(res => res.data)
-    .then(res => res.items)
-    .catch(err => console.log(err))
-}
-
-const search = page => {
-  if (!page) page = 1
-  const configuration = { headers: { 'User-Agent': 'BoilerPlatePro' } }
-  const query = 'boilerplate'
-  const sort = 'stars'
-  const order = 'desc'
-  const criteria = `?q=${query}&sort=${sort}&order=${order}&per_page=100&page=${page}`
-  const server = `&client_id=${cred.GITHUB_CLIENT_ID}&client_secret=${cred.GITHUB_CLIENT_SECRET}`
-  return getGitHub(`/search/repositories${criteria}${server}`, configuration)
-}
-
+// posts result batch to firestore
+// takes an array of repos from github
 function saveBatch(results) {
+  console.log('--> now attempting to store repos')
   const batch = db.batch()
   results.forEach(repo => {
-    // console.log('repoId:', repo.id)
-    // console.log('repo name:', repo.name)
     const id = repo.id.toString()
     batch.set(db.collection('boilerplates').doc(id), repo)
   })
   return batch.commit().then(data => {
-    console.log('batch saved. size:', data.length)
+    console.log('-->', data.length, 'repos saved')
   })
 }
 
+// gather creates get request for every page of search
+// takes a limit for the number of pages to gather
+// and send to save batch
 async function gather(limit) {
   if (!limit) limit = 1
   let pagePointer = 1
@@ -60,20 +42,55 @@ async function gather(limit) {
 
   while (pagePointer <= limit) {
     let result = await search(pagePointer)
-    console.log('pointer @', pagePointer)
-    console.log('result size:', result.length)
+    result = result.items
+    console.log(
+      'Getting Page #',
+      pagePointer,
+      ' | repos found on page:',
+      result.length
+    )
     results = results.concat(result)
     pagePointer++
   }
-  console.log('----FINAL SIZE:', results.length)
+  console.log('--------Total amount of results:', results.length)
   saveBatch(results)
   return results
 }
 
-router.get('/1', (req, res, next) => {
-  const items = gather(3)
+router.get('/limit', (req, res, next) => {
+  getRateLimit().then(results => {
+    res.json(results)
+  })
+})
+
+router.get('/loadToStore', (req, res, next) => {
+  const items = gather(5)
   console.log('items length', items.length)
   res.json(items)
+})
+
+router.get('/languagesForStoreItems', (req, res, next) => {
+  console.log('....beginning to fetch languages for repos')
+  res.send('in proccess...')
+  boilerplates
+    .get()
+    .then(snapshot => {
+      snapshot.forEach(doc => {
+        getLanguages(doc.data().full_name)
+          .then(languages => {
+            console.log('ID#', doc.id, '\t\tlanguages:', languages)
+            return boilerplates
+              .doc(doc.id)
+              .set({ languages: languages })
+              .then(_ => {
+                console.log(doc.data().full_name, ' --> languages:', languages)
+              })
+          })
+          .catch(error => console.log(error))
+        console.log(doc.id, '\t\t', doc.data().full_name)
+      })
+    })
+    .catch(next)
 })
 
 router.get('/', (req, res, next) => {
