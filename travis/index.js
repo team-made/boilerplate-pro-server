@@ -1,6 +1,5 @@
 const router = require('express').Router()
 const axios = require('axios')
-const cors = require('cors')
 // const { getGitHub, search, getLanguages, getRateLimit } = require('./utils')
 // const admin = require('firebase-admin')
 
@@ -11,9 +10,9 @@ router.post('/', (request, response, next) => {
     'req:',
     request.body,
     'DATA token:',
-    Object.keys(request.body)[0]
+    request.body.token
   )
-  const token = Object.keys(request.body)[0]
+  const token = request.body.token
   const config = {
     headers: {
       Accept: 'application/vnd.travis-ci.2+json',
@@ -28,7 +27,9 @@ router.post('/', (request, response, next) => {
       { github_token: token },
       config
     )
-    .then(res => console.log('res', res.data) || response.status(200).send(res.data))
+    .then(
+      res => console.log('res', res.data) || response.status(200).send(res.data)
+    )
     .catch(next)
 })
 
