@@ -4,14 +4,7 @@ const axios = require('axios')
 // const admin = require('firebase-admin')
 
 router.post('/', (request, response, next) => {
-  console.log(
-    'type: ',
-    typeof request.body,
-    'req:',
-    request.body,
-    'DATA token:',
-    request.body.token
-  )
+  console.log('req:', request.body)
   const token = request.body.token
   const config = {
     headers: {
@@ -27,9 +20,10 @@ router.post('/', (request, response, next) => {
       { github_token: token },
       config
     )
-    .then(
-      res => console.log('res', res.data) || response.status(200).send(res.data)
-    )
+    .then(res => {
+      console.log('Travis response token:', res.data.data['access_token'])
+      response.status(200).send(res.data)
+    })
     .catch(next)
 })
 
