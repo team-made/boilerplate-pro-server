@@ -27,10 +27,9 @@ router.post('/', (request, response, next) => {
       { github_token: token },
       config
     )
-    .then(res => {
-      console.log('res', res)
-      response.status(200).send(res)
-    })
+    .then(
+      res => console.log('res', res.data) || response.status(200).send(res.data)
+    )
     .catch(err => response.status(500).send('ERROR', err))
 })
 
