@@ -1,6 +1,6 @@
 {
   "name": "boilerplaterproserver",
-  "version": "1",
+  "version": "1.0.0",
   "node": "8.6",
   "description": "the backen for boilerplatepro",
   "main": "server.js",
