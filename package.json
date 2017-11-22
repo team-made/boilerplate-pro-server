@@ -7,7 +7,8 @@
   "author": "Evans Stepanov <evans@stepanov.email>",
   "license": "MIT",
   "scripts": {
-    "start": "NODE_ENV='development' nodemon server"
+    "start": "NODE_ENV='production' node server",
+    "start-dev": "NODE_ENV='development' nodemon server"
   },
   "dependencies": {
     "axios": "^0.17.1",

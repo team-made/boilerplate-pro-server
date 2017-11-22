@@ -21,7 +21,7 @@ app.use(bodyParser.urlencoded({ extended: true }))
 
 // auth and api routes
 app.use('/github', require('./github'))
-
+app.use('/travis', require('./travis'))
 app.use('/', (req, res, next) => {
   res.send(` -> yo dog i heard you like counters: ${counter}`)
 })
@@ -31,6 +31,10 @@ app.use((err, req, res, next) => {
   console.error(err)
   console.error(err.stack)
   res.status(err.status || 500).send(err.message || 'Internal server error.')
+})
+
+app.use('*', (req, res, next) => {
+  res.send(`POST ERROR -> yo dog i heard you like counters: ${counter}`)
 })
 
 const server = app.listen(PORT, () => console.log(`Boiling up on port ${PORT}`))
