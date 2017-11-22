@@ -1,5 +1,6 @@
 const router = require('express').Router()
 const axios = require('axios')
+const cors = require('cors')
 // const { getGitHub, search, getLanguages, getRateLimit } = require('./utils')
 // const admin = require('firebase-admin')
 
@@ -28,7 +29,10 @@ router.post('/', (request, response, next) => {
       config
     )
     .then(
-      res => console.log('res', res.data) || response.status(200).send(res.data)
+      cors( request, response, ()=>{
+        res => console.log('res', res.data) || response.status(200).send(res.data)
+
+      })
     )
     .catch(err => response.status(500).send('ERROR', err))
 })
