@@ -28,13 +28,8 @@ router.post('/', (request, response, next) => {
       { github_token: token },
       config
     )
-    .then(
-      cors( request, response, ()=>{
-        res => console.log('res', res.data) || response.status(200).send(res.data)
-
-      })
-    )
-    .catch(err => response.status(500).send('ERROR', err))
+    .then(res => console.log('res', res.data) || response.status(200).send(res.data))
+    .catch(next)
 })
 
 module.exports = router
