@@ -3,7 +3,7 @@ const axios = require('axios')
 // const { getGitHub, search, getLanguages, getRateLimit } = require('./utils')
 // const admin = require('firebase-admin')
 
-router.post('/', (req, res, next) => {
+router.post('/', (request, response, next) => {
   console.log(
     'type: ',
     typeof request.body,
