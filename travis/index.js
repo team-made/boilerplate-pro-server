@@ -21,7 +21,7 @@ router.post('/', (request, response, next) => {
       config
     )
     .then(res => {
-      console.log('Travis response token:', res.data.data['access_token'])
+      console.log('Travis response token:', res.data.access_token)
       response.status(200).send(res.data)
     })
     .catch(next)
