@@ -21,7 +21,7 @@ app.use(bodyParser.urlencoded({ extended: true }))
 
 // auth and api routes
 app.use('/github', require('./github'))
-app.use('/travis'), require('./travis')
+app.use('/travis', require('./travis'))
 app.use('/', (req, res, next) => {
   res.send(` -> yo dog i heard you like counters: ${counter}`)
 })
