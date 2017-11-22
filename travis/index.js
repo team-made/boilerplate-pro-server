@@ -3,11 +3,15 @@ const axios = require('axios')
 // const { getGitHub, search, getLanguages, getRateLimit } = require('./utils')
 // const admin = require('firebase-admin')
 
-
-
-
-router.post('/',(req, res, next) => {
-  console.log('type: ', typeof request.body, 'req:', request.body, 'DATA token:', Object.keys(request.body)[0])
+router.post('/', (req, res, next) => {
+  console.log(
+    'type: ',
+    typeof request.body,
+    'req:',
+    request.body,
+    'DATA token:',
+    Object.keys(request.body)[0]
+  )
   const token = Object.keys(request.body)[0]
   const config = {
     headers: {
@@ -29,3 +33,5 @@ router.post('/',(req, res, next) => {
     })
     .catch(err => response.status(500).send('ERROR', err))
 })
+
+module.exports = router
