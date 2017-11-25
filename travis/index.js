@@ -38,9 +38,9 @@ router.post('/', (request, response, next) => {
     .then(allRepos => {
       console.log('Travis repos: ', allRepos.data.repos)
       const travRepo = allRepos.data.repos.find(travRepo => travRepo.slug.split('/')[1] === repo)
-      while(!travRepo){
-        console.log('waiting for travis to sync')
-      }
+      // while(!travRepo){
+      //   console.log('waiting for travis to sync')
+      // }
       console.log('Correct Repo: ',travRepo)
     return travRepo
     })
