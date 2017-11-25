@@ -30,12 +30,12 @@ router.post('/', (request, response, next) => {
       let travRepo;
       console.log('waiting for travis to sync');
       while (!travRepo) {
-        const repo = await axios.get(
+        const correctRepo = await axios.get(
           `https://api.travis-ci.org/repos/${username}/${repo}`,
           config
         );
-        console.log('current get resolution: ', repo)
-        travRepo = repo;
+        console.log('current get resolution: ', correctRepo)
+        travRepo = correctRepo;
       }
       console.log('correct repo: ', travRepo);
       return travRepo;
