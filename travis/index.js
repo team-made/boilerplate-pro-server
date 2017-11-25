@@ -1,11 +1,11 @@
-const router = require('express').Router()
-const axios = require('axios')
+const router = require('express').Router();
+const axios = require('axios');
 // const { getGitHub, search, getLanguages, getRateLimit } = require('./utils')
 // const admin = require('firebase-admin')
 
 router.post('/', (request, response, next) => {
-  console.log('req:', request.body)
-  const { token, username, repo } = request.body
+  console.log('req:', request.body);
+  const { token, username, repo } = request.body;
   const config = {
     headers: {
       Accept: 'application/vnd.travis-ci.2+json',
@@ -13,7 +13,7 @@ router.post('/', (request, response, next) => {
       Host: 'api.travis-ci.org',
       'Content-Type': 'application/json'
     }
-  }
+  };
   axios
     .post(
       'https://api.travis-ci.org/auth/github',
@@ -21,37 +21,35 @@ router.post('/', (request, response, next) => {
       config
     )
     .then(res => {
-      console.log('Travis response token:', res.data.access_token)
-      return res.data.access_token
+      console.log('Travis response token:', res.data.access_token);
+      return res.data.access_token;
     })
     .then(travisToken => {
-      config.headers.Authorization = `token ${travisToken}`
-      console.log('auth', config)
-      
-      return axios.get(
-        // `https://api.travis-ci.org/repos/${username}/${repo}`,
-        // config
-        `https://api.travis-ci.org/repos/${username}`,
-        config
-      )
-    })
-    .then(allRepos => {
-      console.log('Travis repos: ', allRepos.data.repos)
-      const travRepo = allRepos.data.repos.find(travRepo => travRepo.slug.split('/')[1] === repo)
-      // while(!travRepo){
-      //   console.log('waiting for travis to sync')
-      // }
-      console.log('Correct Repo: ',travRepo)
-    return travRepo
+      config.headers.Authorization = `token ${travisToken}`;
+      console.log('auth', config);
+      let travRepo;
+      console.log('waiting for travis to sync');
+      while (!travRepo) {
+        axios.get(
+          `https://api.travis-ci.org/repos/${username}/${repo}`,
+          config
+          .then(function(repo){
+            travRepo = repo;
+          })
+        )
+      }
+      console.log('correct repo: ', travRepo);
+      return travRepo
+
     })
     .then(travRepo => travRepo.id)
     //.then(res => res.data.repo.id)
-    // .then(repoId => {
-    //   const data = { hook: { id: repoId, active: true } }
-    //   return axios.put(`https://api.travis-ci.org/hooks`, data, config)
-    // })
+     .then(repoId => {
+       const data = { hook: { id: repoId, active: true } }
+       return axios.put(`https://api.travis-ci.org/hooks`, data, config)
+     })
     .then(res => console.log(res.data) || response.status(200).send(res.data))
-    .catch(next)
-})
+    .catch(next);
+});
 
-module.exports = router
+module.exports = router;
