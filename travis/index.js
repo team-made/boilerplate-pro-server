@@ -24,30 +24,29 @@ router.post('/', (request, response, next) => {
       console.log('Travis response token:', res.data.access_token);
       return res.data.access_token;
     })
-    .then(travisToken => {
+    .then(async travisToken => {
       config.headers.Authorization = `token ${travisToken}`;
       console.log('auth', config);
       let travRepo;
       console.log('waiting for travis to sync');
       while (!travRepo) {
-        axios.get(
+        const repo = await axios.get(
           `https://api.travis-ci.org/repos/${username}/${repo}`,
-          config)
-          .then(function(repo){
-            travRepo = repo;
-          })
-        
+          config
+        );
+        console.log('current get resolution: ', repo)
+        travRepo = repo;
       }
       console.log('correct repo: ', travRepo);
-      return travRepo
-
+      return travRepo;
     })
+
     .then(travRepo => travRepo.id)
     //.then(res => res.data.repo.id)
-     .then(repoId => {
-       const data = { hook: { id: repoId, active: true } }
-       return axios.put(`https://api.travis-ci.org/hooks`, data, config)
-     })
+    .then(repoId => {
+      const data = { hook: { id: repoId, active: true } };
+      return axios.put(`https://api.travis-ci.org/hooks`, data, config);
+    })
     .then(res => console.log(res.data) || response.status(200).send(res.data))
     .catch(next);
 });
