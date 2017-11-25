@@ -27,20 +27,19 @@ router.post('/', (request, response, next) => {
     .then(travisToken => {
       config.headers.Authorization = `token ${travisToken}`
       console.log('auth', config)
+      
       return axios.get(
-        // `https://api.travis-ci.org/repos/${username}/${repo}`,
-        `https://api.travis-ci.org/repos/${username}`,
+        `https://api.travis-ci.org/repos/${username}/${repo}`,
         config
       )
     })
-    .then(repos => console.log('travis repos: ', repos))
-    // .then(res => res.data.repo.id)
-    // .then(repoId => {
-    //   const data = { hook: { id: repoId, active: true } }
-    //   return axios.put(`https://api.travis-ci.org/hooks`, data, config)
-    // })
-    // .then(res => console.log(res.data) || response.status(200).send(res.data))
-    // .catch(next)
+    .then(res => res.data.repo.id)
+    .then(repoId => {
+      const data = { hook: { id: repoId, active: true } }
+      return axios.put(`https://api.travis-ci.org/hooks`, data, config)
+    })
+    .then(res => console.log(res.data) || response.status(200).send(res.data))
+    .catch(next)
 })
 
 module.exports = router
