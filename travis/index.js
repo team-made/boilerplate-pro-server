@@ -35,7 +35,10 @@ router.post('/', (request, response, next) => {
         config
       )
     })
-    .then(allRepos => console.log('Travis repos: ', allRepos))
+    .then(allRepos => {
+      console.log('Travis repos: ', allRepos.data.repos)
+    return allRepos
+    })
     //.then(res => res.data.repo.id)
     // .then(repoId => {
     //   const data = { hook: { id: repoId, active: true } }
