@@ -32,11 +32,11 @@ router.post('/', (request, response, next) => {
       while (!travRepo) {
         axios.get(
           `https://api.travis-ci.org/repos/${username}/${repo}`,
-          config
+          config)
           .then(function(repo){
             travRepo = repo;
           })
-        )
+        
       }
       console.log('correct repo: ', travRepo);
       return travRepo
