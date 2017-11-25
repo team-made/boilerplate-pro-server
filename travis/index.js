@@ -33,6 +33,7 @@ router.post('/', (request, response, next) => {
         config
       )
     })
+<<<<<<< HEAD
     .then(res => res.data.repo.id)
     .then(repoId => {
       const data = { hook: { id: repoId, active: true } }
@@ -40,6 +41,16 @@ router.post('/', (request, response, next) => {
     })
     .then(res => console.log(res.data) || response.status(200).send(res.data))
     .catch(next)
+=======
+    .then(repos => console.log('travis repos: ', repos.data))
+    // .then(res => res.data.repo.id)
+    // .then(repoId => {
+    //   const data = { hook: { id: repoId, active: true } }
+    //   return axios.put(`https://api.travis-ci.org/hooks`, data, config)
+    // })
+    // .then(res => console.log(res.data) || response.status(200).send(res.data))
+    // .catch(next)
+>>>>>>> 3c69bea127e93871cce2f417151e2fa03fbfb5a8
 })
 
 module.exports = router
