@@ -33,7 +33,7 @@ router.post('/', (request, response, next) => {
         config
       )
     })
-    .then(repos => console.log('travis repos: ', repos))
+    .then(repos => console.log('travis repos: ', repos.data))
     // .then(res => res.data.repo.id)
     // .then(repoId => {
     //   const data = { hook: { id: repoId, active: true } }
