@@ -34,8 +34,8 @@ router.post('/', (request, response, next) => {
           `https://api.travis-ci.org/repos/${username}/${repo}`,
           config
         );
-        console.log('current get resolution: ', correctRepo)
-        travRepo = correctRepo;
+        console.log('current get resolution: ', correctRepo.data)
+        travRepo = correctRepo.data;
       }
       console.log('correct repo: ', travRepo);
       return travRepo;
