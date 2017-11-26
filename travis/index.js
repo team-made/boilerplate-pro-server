@@ -1,5 +1,5 @@
-const router = require('express').Router();
-const axios = require('axios');
+const router = require('express').Router()
+const axios = require('axios')
 // const { getGitHub, search, getLanguages, getRateLimit } = require('./utils')
 // const admin = require('firebase-admin')
 
