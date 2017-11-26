@@ -24,24 +24,24 @@ router.post('/', (request, response, next) => {
       console.log('Travis response token:', res.data.access_token);
       return res.data.access_token;
     })
-    .then(async travisToken => {
+    .then( travisToken => {
       config.headers.Authorization = `token ${travisToken}`;
       console.log('auth', config);
-      let travRepo;
       console.log('waiting for travis to sync');
-      while (!travRepo) {
-        const correctRepo = await axios.get(
-          `https://api.travis-ci.org/repos/${username}/${repo}`,
-          config
-        );
-        console.log('current get resolution: ', correctRepo.data)
-        travRepo = correctRepo.data;
-      }
-      console.log('correct repo: ', travRepo);
-      return travRepo;
-    })
+       axios.get(
+        `https://api.travis-ci.org/repos/${username}/${repo}`,
+        config
+      )
+    //   while (!correctRepo.data.repo) {
+    //     console.log('current get resolution: ', correctRepo)
+    //   }
+    //   console.log('correct repo: ');
+    //   return correctRepo.data.repo.id;
+    // })
 
-    .then(travRepo => travRepo.id)
+    .then(travRepo => {
+      console.log('travRepo: ', travRepo)
+      return travRepo.data.repo.id})
     //.then(res => res.data.repo.id)
     .then(repoId => {
       const data = { hook: { id: repoId, active: true } };
