@@ -13,7 +13,7 @@ router.post('/', (request, response, next) => {
       Host: 'api.travis-ci.org',
       'Content-Type': 'application/json'
     }
-  };
+  }
   axios
     .post(
       'https://api.travis-ci.org/auth/github',
@@ -24,7 +24,7 @@ router.post('/', (request, response, next) => {
       console.log('Travis response token:', res.data.access_token);
       return res.data.access_token;
     })
-    .then( travisToken => {
+    .then(travisToken => {
       config.headers.Authorization = `token ${travisToken}`;
       console.log('auth', config);
       console.log('waiting for travis to sync');
@@ -32,23 +32,26 @@ router.post('/', (request, response, next) => {
         `https://api.travis-ci.org/repos/${username}/${repo}`,
         config
       )
-    //   while (!correctRepo.data.repo) {
-    //     console.log('current get resolution: ', correctRepo)
-    //   }
-    //   console.log('correct repo: ');
-    //   return correctRepo.data.repo.id;
-    // })
-
-    .then(travRepo => {
-      console.log('travRepo: ', travRepo)
-      return travRepo.data.repo.id})
-    //.then(res => res.data.repo.id)
-    .then(repoId => {
-      const data = { hook: { id: repoId, active: true } };
-      return axios.put(`https://api.travis-ci.org/hooks`, data, config);
+      
+      .then(travRepo => {
+        console.log('travRepo: ', travRepo)
+        return travRepo.data.repo.id
+      })
+        //.then(res => res.data.repo.id)
+        .then(repoId => {
+          const data = { hook: { id: repoId, active: true } };
+          return axios.put(`https://api.travis-ci.org/hooks`, data, config);
+        })
+        .then(res => console.log(res.data) || response.status(200).send(res.data))
+        .catch(next);
+      })
     })
-    .then(res => console.log(res.data) || response.status(200).send(res.data))
-    .catch(next);
-});
-
-module.exports = router;
+      
+      module.exports = router
+      
+      //   while (!correctRepo.data.repo) {
+      //     console.log('current get resolution: ', correctRepo)
+      //   }
+      //   console.log('correct repo: ');
+      //   return correctRepo.data.repo.id;
+      // })
