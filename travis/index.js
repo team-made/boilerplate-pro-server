@@ -31,21 +31,21 @@ router.post('/', (request, response, next) => {
 
       let travRepo;
       while (!travRepo) {
-        travRepo = await axios.get(
+        console.log('waiting')
+        axios.get(
           `https://api.travis-ci.org/repos/${username}/${repo}`,
           config
-        );
+        ).then(res => {
+          travRepo = res
+        })
       }
 
       const repoId = travRepo.data.repo.id;
       console.log('travRepo: ', travRepo, 'repoId: ', repoId);
       const data = { hook: { id: repoId, active: true } };
       if (travRepo) {
-        await axios
-          .put(`https://api.travis-ci.org/hooks`, data, config)
-          .then(
-            res => console.log(res.data) || response.status(200).send(res.data)
-          )
+         axios.put(`https://api.travis-ci.org/hooks`, data, config)
+          .then(res => console.log(res.data) || response.status(200).send(res.data))
           .catch(next);
       }
     });
