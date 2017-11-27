@@ -24,15 +24,15 @@ app.use((req, res, next) => {
     'Access-Control-Allow-Headers',
     'Origin, X-Requested-With, Content-Type, Accept'
   )
-  res.header('Acess-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS')
-  if ('OPTIONS' === req.method) res.send(200)
+  res.header('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS')
+  if ('OPTIONS' === req.method) return res.sendStatus(200)
   next()
 })
 // auth and api routes
 app.use('/github', require('./github'))
 app.use('/travis', require('./travis'))
 app.use('/', (req, res, next) => {
-  res.send(` -> yo dog i heard you like counters: ${counter}`)
+  res.send(` -> yo dog ${counter}`)
 })
 
 // error handling

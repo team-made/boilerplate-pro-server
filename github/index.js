@@ -1,18 +1,18 @@
 const router = require('express').Router()
 const axios = require('axios')
-const Cloner = require('./cloner')
+const Cloner = require('./localClone') // git locally
+// const Cloner = require('./cloner') // github api
 
-router.post('/hyperClone', (req, res, next) => {})
+router.post('/hyperClone', (req, res, next) => {
+  console.log('hello!')
+  console.log(req.body)
+  const { repoName, githubUsername, githubToken, name, owner } = req.body
+  const clone = new Cloner(repoName, githubUsername, githubToken, name, owner)
+  res.sendStatus(200)
+})
 
 // const { getGitHub, search, getLanguages, getRateLimit } = require('./utils')
-// const admin = require('firebase-admin')
 
-// // firebase setup
-// var serviceAccount = require('../secrets.json')
-// admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount)
-// })
-// var db = admin.firestore()
 // const caches = db.collection('caches')
 // const boilerplates = db.collection('boilerplates')
 
@@ -121,4 +121,4 @@ router.post('/hyperClone', (req, res, next) => {})
 //     .catch(next)
 // })
 
-// module.exports = router
+module.exports = router
