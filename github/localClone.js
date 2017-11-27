@@ -1,8 +1,7 @@
 const Promise = require('bluebird')
 const axios = require('axios')
-const path = require('path')
 const fs = require('fs-extra')
-const makeDir = Promise.promisify(fs.mkdir)
+const git = require('simple-git/promise')
 
 class Cloner {
   constructor(destRepo, destUser, userToken, sourceRepo, sourceUser) {
@@ -95,9 +94,7 @@ class Cloner {
   cloneLocal() {
     const localPath = `./tmp/${this.destinationUser}`
 
-    const git = require('simple-git/promise')
-
-    if (!fs.pathExistsSync(localPath)) {
+    if (!fs.pathExistsSync(`${localPath}/${this.destinationRepo}`)) {
       // we do not have this repo created on our server yet...
       this.createRepo()
         .then(newRepo => {
@@ -136,7 +133,7 @@ class Cloner {
         .then(_ => {
           console.log('SUCCESS! now committing changes')
           return git(`${localPath}/${this.destinationRepo}`).commit(
-            'first commit!'
+            'INITIAL - BOILERPLATE.PRO COMMIT!'
           )
         })
         .then(_ => {
@@ -152,7 +149,16 @@ class Cloner {
         })
     } else {
       // if we do have the repo stored locally on our server already...
-      console.log('REPO FOLDER ALREADY EXISTS... nothing is done')
+      console.log('REPO FOLDER ALREADY EXISTS... now trying to remove it')
+      fs
+        .remove(`${localPath}/${this.destinationRepo}`)
+        .then(() => {
+          console.log('successfully removed old repo folder!')
+          this.cloneLocal()
+        })
+        .catch(err => {
+          console.error(err)
+        })
     }
   }
 }

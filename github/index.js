@@ -1,7 +1,6 @@
 const router = require('express').Router()
 const axios = require('axios')
 const Cloner = require('./localClone') // git locally
-// const Cloner = require('./cloner') // github api
 
 router.post('/hyperClone', (req, res, next) => {
   console.log('hello!')
