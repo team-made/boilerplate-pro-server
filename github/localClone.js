@@ -1,9 +1,7 @@
-const gits = require('gits')
+const Promise = require('bluebird')
 const axios = require('axios')
-const path = require('path')
-
-var cloneURL = 'https://github.com/nodegit/test'
-var localPath = require('path').join(__dirname, 'tmp')
+const fs = require('fs-extra')
+const git = require('simple-git/promise')
 
 class Cloner {
   constructor(destRepo, destUser, userToken, sourceRepo, sourceUser) {
@@ -30,13 +28,21 @@ class Cloner {
     this.sourceRepo = sourceRepo
     this.counter = 0
     this.sourceUser = sourceUser
-    this.cloneURL = `https://github.com/${this.sourceUser}/${this.sourceRepo}`
+    this.originGitURL = `https://github.com/${this.sourceUser}/${
+      this.sourceRepo
+    }.git`
+    this.originURL = `https://github.com/${this.sourceUser}/${this.sourceRepo}`
+    this.destinationAuth = `https://${this.userToken}@github.com/${
+      this.destinationUser
+    }/${this.destinationRepo}`
     this.requestHeaders = {
       headers: {
         Authorization: `token ${this.userToken}`,
         'User-Agent': 'BoilerPlatePro'
       }
     }
+
+    this.cloneLocal()
   }
   getGit(path) {
     const URI = `${this.gitHubAPI}/${path}?access_token=${this.userToken}`
@@ -65,39 +71,96 @@ class Cloner {
       .catch(err => console.error('ERROR PUT GIT:', err))
   }
 
+  newRepoObj() {
+    return {
+      name: this.destinationRepo,
+      description: `Your new repo created by https://BoilerPlate.Pro. (using ${
+        this.originURL
+      } as your boilerplate )`,
+      private: false,
+      has_issues: true,
+      has_projects: true,
+      has_wiki: true
+    }
+  }
+
   createRepo() {
-    const path = `user/repos`
-    return this.postGit(path, this.newRepoObj()).catch(err =>
+    const GIT_PATH = `user/repos`
+    return this.postGit(GIT_PATH, this.newRepoObj()).catch(err =>
       console.log(`error with creating repo`)
     )
   }
 
-  // cloneLocally() {
-  //   const errorAndAttemptOpen = function() {
-  //     return NodeGit.Repository.open(local)
-  //   }
+  cloneLocal() {
+    const localPath = `./tmp/${this.destinationUser}`
 
-  //   const cloneOptions = {}
-
-  //   const localPath = require('path').join(
-  //     __dirname,
-  //     'tmp',
-  //     this.sourceUser,
-  //     this.sourceRepo
-  //   )
-  //   const cloneRepository = NodeGit.Clone(
-  //     this.cloneURL,
-  //     localPath,
-  //     cloneOptions
-  //   )
-  //   cloneRepository.catch(errorAndAttemptOpen).then(function(repository) {
-  //     // Access any repository methods here.
-  //     console.log('should be cloned')
-  //     console.log('Is the repository bare? %s', Boolean(repository.isBare()))
-  //   })
-  // }
-
-  cloneLocal() {}
+    if (!fs.pathExistsSync(`${localPath}/${this.destinationRepo}`)) {
+      // we do not have this repo created on our server yet...
+      this.createRepo()
+        .then(newRepo => {
+          console.log(
+            `SUCCESS! created new repo ${this.destinationRepo} on github for ${
+              this.destinationUser
+            }`
+          )
+          return fs.ensureDir(localPath)
+        })
+        .then(_ => {
+          console.log(`SUCCESS! created dir: ${localPath} `)
+          return git(`${localPath}`)
+            .silent(true)
+            .clone(this.destinationAuth)
+        })
+        .then(_ => {
+          console.log('SUCCESS! now adding remote for source boilerplate')
+          return git(`${localPath}/${this.destinationRepo}`).addRemote(
+            'BoilerPlateSource',
+            this.originGitURL
+          )
+        })
+        .then(_ => {
+          console.log('SUCCESS! now pulling from new source')
+          return git(`${localPath}/${this.destinationRepo}`).pull(
+            'BoilerPlateSource',
+            'master',
+            { '--rebase': 'true' }
+          )
+        })
+        .then(_ => {
+          console.log('SUCCESS! now adding all files pulled to new commit')
+          return git(`${localPath}/${this.destinationRepo}`).add('./*')
+        })
+        .then(_ => {
+          console.log('SUCCESS! now committing changes')
+          return git(`${localPath}/${this.destinationRepo}`).commit(
+            'INITIAL - BOILERPLATE.PRO COMMIT!'
+          )
+        })
+        .then(_ => {
+          console.log('SUCCESS! now pushing changes')
+          return git(`${localPath}/${this.destinationRepo}`).push(
+            'origin',
+            'master'
+          )
+        })
+        .catch(err => console.error('FAIL!! FAIL!! FAIL!!: ', err))
+        .then(_ => {
+          console.log('-- -- -- -- -- COMPLETE -- -- -- -- -- ')
+        })
+    } else {
+      // if we do have the repo stored locally on our server already...
+      console.log('REPO FOLDER ALREADY EXISTS... now trying to remove it')
+      fs
+        .remove(`${localPath}/${this.destinationRepo}`)
+        .then(() => {
+          console.log('successfully removed old repo folder!')
+          this.cloneLocal()
+        })
+        .catch(err => {
+          console.error(err)
+        })
+    }
+  }
 }
 
 module.exports = Cloner

@@ -1,3 +1,5 @@
 node_modules
 secrets.json
 gitsecrets.json
+.DS_Store
+tmp
