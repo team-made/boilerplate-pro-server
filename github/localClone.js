@@ -22,6 +22,8 @@ class Cloner {
     }
     this.gitHubAPI = 'https://api.github.com'
     this.status = 'initializing'
+    this.FULL_NAME = 'BOILER PLATE PRO'
+    this.FULL_EMAIL = 'BOILERPLATEGODS@BOILERPLATE.PRO'
     this.destinationRepo = destRepo
     this.destinationUser = destUser
     this.userToken = userToken
@@ -109,6 +111,8 @@ class Cloner {
           console.log(`SUCCESS! created dir: ${localPath} `)
           return git(`${localPath}`)
             .silent(true)
+            .addConfig('user.name', this.FULL_NAME)
+            .addConfig('user.email', this.FULL_EMAIL)
             .clone(this.destinationAuth)
         })
         .then(_ => {
@@ -144,6 +148,14 @@ class Cloner {
           )
         })
         .catch(err => console.error('FAIL!! FAIL!! FAIL!!: ', err))
+        .then(_ => {
+          console.log('--> trying to remove this repo from our server')
+          return fs.remove(`${localPath}/${this.destinationRepo}`)
+        })
+        .then(() => {
+          console.log('--> successfully removed old repo folder!')
+          this.cloneLocal()
+        })
         .then(_ => {
           console.log('-- -- -- -- -- COMPLETE -- -- -- -- -- ')
         })
