@@ -111,9 +111,21 @@ class Cloner {
           console.log(`SUCCESS! created dir: ${localPath} `)
           return git(`${localPath}`)
             .silent(true)
-            .addConfig('user.name', this.FULL_NAME)
-            .addConfig('user.email', this.FULL_EMAIL)
             .clone(this.destinationAuth)
+        })
+        .then(_ => {
+          console.log(`SUCCESS! now adding user name`)
+          return git(`${localPath}/${this.destinationRepo}`).addConfig(
+            'user.name',
+            this.FULL_NAME
+          )
+        })
+        .then(_ => {
+          console.log(`SUCCESS! now adding user email`)
+          return git(`${localPath}/${this.destinationRepo}`).addConfig(
+            'user.email',
+            this.FULL_EMAIL
+          )
         })
         .then(_ => {
           console.log('SUCCESS! now adding remote for source boilerplate')
@@ -147,18 +159,24 @@ class Cloner {
             'master'
           )
         })
-        .catch(err => console.error('FAIL!! FAIL!! FAIL!!: ', err))
         .then(_ => {
-          console.log('--> trying to remove this repo from our server')
+          console.log(
+            `--> trying to remove ( ${localPath}/${
+              this.destinationRepo
+            } ) from our server`
+          )
           return fs.remove(`${localPath}/${this.destinationRepo}`)
         })
         .then(() => {
-          console.log('--> successfully removed old repo folder!')
+          console.log(
+            `--> successfully removed ( ${localPath}/${this.destinationRepo} )!`
+          )
           this.cloneLocal()
         })
         .then(_ => {
           console.log('-- -- -- -- -- COMPLETE -- -- -- -- -- ')
         })
+        .catch(err => console.error('FAIL!! FAIL!! FAIL!!: ', err))
     } else {
       // if we do have the repo stored locally on our server already...
       console.log('REPO FOLDER ALREADY EXISTS... now trying to remove it')
