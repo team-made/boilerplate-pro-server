@@ -108,9 +108,6 @@ class Cloner {
           return fs.ensureDir(localPath)
         })
         .then(_ => {
-          console.log('SUCCESS! now fetching user details')
-        })
-        .then(_ => {
           console.log(`SUCCESS! created dir: ${localPath} `)
           return git(`${localPath}`)
             .silent(true)
