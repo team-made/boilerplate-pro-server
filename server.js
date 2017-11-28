@@ -29,7 +29,9 @@ app.use((req, res, next) => {
     'Origin, X-Requested-With, Content-Type, Accept'
   )
   res.header('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS')
+  console.log('REQ.METHOD:', req.method)
   if ('OPTIONS' === req.method) return res.sendStatus(200)
+  console.log('should not be OPTIONS:', req.method)
   next()
 })
 
