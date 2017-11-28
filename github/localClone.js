@@ -121,10 +121,11 @@ class Cloner {
             .collection('users')
             .doc(this.userID.toString())
             .collection('repos')
-            .doc(this.repoID.toString())
+            .doc(this.destinationRepo)
             .set(
               {
                 name: this.destinationRepo,
+                gitHubRepoID: this.repoID,
                 original: `${this.sourceUser}/${this.sourceRepo}`,
                 created: today,
                 status: 'Repository created on github.com'
@@ -167,7 +168,7 @@ class Cloner {
             .collection('users')
             .doc(this.userID.toString())
             .collection('repos')
-            .doc(this.repoID.toString())
+            .doc(this.destinationRepo)
             .update({
               status: `Pulling ${this.sourceRepo}`
             })
@@ -202,7 +203,7 @@ class Cloner {
             .collection('users')
             .doc(this.userID.toString())
             .collection('repos')
-            .doc(this.repoID.toString())
+            .doc(this.destinationRepo)
             .update({
               status: `Pushing ${this.destinationRepo} to your github account`
             })
@@ -227,7 +228,7 @@ class Cloner {
             .collection('users')
             .doc(this.userID.toString())
             .collection('repos')
-            .doc(this.repoID.toString())
+            .doc(this.destinationRepo)
             .update({ status: `DONE` })
         })
         .catch(err => {
@@ -236,7 +237,7 @@ class Cloner {
             .collection('users')
             .doc(this.userID.toString())
             .collection('repos')
-            .doc(this.repoID.toString())
+            .doc(this.destinationRepo)
             .update({ status: `FAILURE` })
             .catch(err => console.log('FAILING TO FAIL to firestore', err))
         })
