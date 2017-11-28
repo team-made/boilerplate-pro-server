@@ -49,28 +49,19 @@ class Cloner {
   getGit(path) {
     const URI = `${this.gitHubAPI}/${path}?access_token=${this.userToken}`
     console.log(`inside of getGit --> ${URI}`)
-    return axios
-      .get(URI)
-      .then(res => res.data)
-      .catch(err => console.error('ERROR GET GIT:', err))
+    return axios.get(URI).then(res => res.data)
   }
 
   postGit(path, data) {
     const URI = `${this.gitHubAPI}/${path}?access_token=${this.userToken}`
     console.log(`inside of postGit --> ${URI}`)
-    return axios
-      .post(URI, data, this.requestHeaders)
-      .then(res => res.data)
-      .catch(err => console.error('ERROR POST GIT:', err))
+    return axios.post(URI, data, this.requestHeaders).then(res => res.data)
   }
 
   putGit(path, data) {
     const URI = `${this.gitHubAPI}/${path}?access_token=${this.userToken}`
     console.log(`inside of putGit --> ${URI} `)
-    return axios
-      .put(URI, data, this.requestHeaders)
-      .then(res => res.data)
-      .catch(err => console.error('ERROR PUT GIT:', err))
+    return axios.put(URI, data, this.requestHeaders).then(res => res.data)
   }
 
   newRepoObj() {
@@ -88,9 +79,7 @@ class Cloner {
 
   createRepo() {
     const GIT_PATH = `user/repos`
-    return this.postGit(GIT_PATH, this.newRepoObj()).catch(err =>
-      console.log(`error with creating repo`)
-    )
+    return this.postGit(GIT_PATH, this.newRepoObj())
   }
 
   cloneLocal() {
