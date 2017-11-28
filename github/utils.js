@@ -44,7 +44,7 @@ function search(page) {
 // posts result batch to firestore
 // takes an array of repos from github
 function sendToFireStore(results) {
-  console.log('--> now attempting to store repos')
+  console.log('--> FIRESTORE: now attempting to store repos')
   const batch = db.batch()
   results.forEach(repo => {
     const id = repo.id.toString()
@@ -53,9 +53,9 @@ function sendToFireStore(results) {
   batch
     .commit()
     .then(data => {
-      console.log('-->', data.length, 'repos saved')
+      console.log(`--> FIRESTORE: ${data.length} repos saved`)
     })
-    .catch(err => console.log('error saving to firestore', err))
+    .catch(err => console.log('--> FIRESTORE: error saving.', err))
 }
 
 // gather creates get request for every page of search

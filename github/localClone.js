@@ -3,6 +3,10 @@ const axios = require('axios')
 const fs = require('fs-extra')
 const git = require('simple-git/promise')
 
+// seearch variables for firestore
+const { db } = require('../firebase-auth')
+const users = db.collection('users')
+
 class Cloner {
   constructor(destRepo, destUser, userToken, sourceRepo, sourceUser) {
     if (!destRepo) {
@@ -28,6 +32,11 @@ class Cloner {
     this.destinationUser = destUser
     this.userToken = userToken
     this.sourceRepo = sourceRepo
+
+    // for firestore
+    this.userID
+    this.repoID
+
     this.counter = 0
     this.sourceUser = sourceUser
     this.originGitURL = `https://github.com/${this.sourceUser}/${
@@ -67,9 +76,9 @@ class Cloner {
   newRepoObj() {
     return {
       name: this.destinationRepo,
-      description: `Your new repo created by https://BoilerPlate.Pro. (using ${
+      description: `Your new repo created by https://Boilerplate.Pro. (You are using ${
         this.originURL
-      } as your boilerplate )`,
+      } as your boilerplate)`,
       private: false,
       has_issues: true,
       has_projects: true,
@@ -88,12 +97,42 @@ class Cloner {
     if (!fs.pathExistsSync(`${localPath}/${this.destinationRepo}`)) {
       // we do not have this repo created on our server yet...
       this.createRepo()
-        .then(newRepo => {
+        .then(repo => {
+          this.repoID = repo.id
           console.log(
             `SUCCESS! created new repo ${this.destinationRepo} on github for ${
               this.destinationUser
             }`
           )
+          return users.where('githubUsername', '==', this.destinationUser).get()
+        })
+        .then(snapshot => {
+          console.log(
+            `... finding ${this.destinationUser} by githubUsername in firestore`
+          )
+          snapshot.forEach(doc => {
+            console.log('========= ON ====== ', doc.id)
+            this.userID = doc.id
+          })
+          console.log('this.userID', this.userID)
+          console.log('this.repoID', this.repoID)
+          const today = new Date()
+          return db
+            .collection('users')
+            .doc(this.userID.toString())
+            .collection('repos')
+            .doc(this.repoID.toString())
+            .set(
+              {
+                name: this.destinationRepo,
+                original: `${this.sourceUser}/${this.sourceRepo}`,
+                created: today,
+                status: 'Repository created on github.com'
+              },
+              { merge: true }
+            )
+        })
+        .then(_ => {
           return fs.ensureDir(localPath)
         })
         .then(_ => {
@@ -124,6 +163,16 @@ class Cloner {
           )
         })
         .then(_ => {
+          return db
+            .collection('users')
+            .doc(this.userID.toString())
+            .collection('repos')
+            .doc(this.repoID.toString())
+            .update({
+              status: `Pulling ${this.sourceRepo}`
+            })
+        })
+        .then(_ => {
           console.log('SUCCESS! now pulling from new source')
           return git(`${localPath}/${this.destinationRepo}`).pull(
             'BoilerPlateSource',
@@ -138,7 +187,7 @@ class Cloner {
         .then(_ => {
           console.log('SUCCESS! now committing changes')
           return git(`${localPath}/${this.destinationRepo}`).commit(
-            'INITIAL - BOILERPLATE.PRO COMMIT!'
+            'INITIAL - BOILERPLATE.PRO'
           )
         })
         .then(_ => {
@@ -147,6 +196,16 @@ class Cloner {
             'origin',
             'master'
           )
+        })
+        .then(_ => {
+          return db
+            .collection('users')
+            .doc(this.userID.toString())
+            .collection('repos')
+            .doc(this.repoID.toString())
+            .update({
+              status: `Pushing ${this.destinationRepo} to your github account`
+            })
         })
         .then(_ => {
           console.log(
@@ -161,8 +220,26 @@ class Cloner {
             `--> successfully removed ( ${localPath}/${this.destinationRepo} )!`
           )
           console.log('-- -- -- -- -- COMPLETE -- -- -- -- -- ')
+          return null
         })
-        .catch(err => console.error('FAIL!! FAIL!! FAIL!!: ', err))
+        .then(_ => {
+          return db
+            .collection('users')
+            .doc(this.userID.toString())
+            .collection('repos')
+            .doc(this.repoID.toString())
+            .update({ status: `DONE` })
+        })
+        .catch(err => {
+          console.error('FAIL!! FAIL!! FAIL!!: ', err)
+          return db
+            .collection('users')
+            .doc(this.userID.toString())
+            .collection('repos')
+            .doc(this.repoID.toString())
+            .update({ status: `FAILURE` })
+            .catch(err => console.log('FAILING TO FAIL to firestore', err))
+        })
     } else {
       // if we do have the repo stored locally on our server already...
       console.log('REPO FOLDER ALREADY EXISTS... now trying to remove it')
