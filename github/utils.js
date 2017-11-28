@@ -80,6 +80,18 @@ function gatherRepos(limit) {
   // console.log('--------Total amount of results:', results.length)
 }
 
+// returns promise (axios.get) for the contents of README
+function getReadMe(ownerSlashName) {
+  return getGitHub(`/repos/${ownerSlashName}/readme`).then(res => res.data)
+}
+
+// returns promise (axios.get) for the contents of package.json
+function getPackageJSON(ownerSlashName) {
+  return getGitHub(`/repos/${ownerSlashName}/contents/package.json`).then(
+    res => res.data
+  )
+}
+
 // returns promise (axios.get) for languages used in a github repo
 function getLanguages(ownerSlashName) {
   return getGitHub(`/repos/${ownerSlashName}/languages`).then(res => res.data)
