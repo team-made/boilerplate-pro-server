@@ -31,7 +31,7 @@ router.get('/limit', (req, res, next) => {
 })
 
 router.get('/loadToStore', (req, res, next) => {
-  gatherRepos(5)
+  gatherRepos(1)
   res.send('GATHERING')
 })
 
