@@ -1,10 +1,12 @@
 const admin = require('firebase-admin')
-var fs = require('fs')
-const SECRETS_PATH = '../secrets.json'
+const fs = require('fs')
+const SECRETS_PATH = 'secrets.json'
+let serviceAccount
+
 if (fs.existsSync(SECRETS_PATH)) {
-  const serviceAccount = require(SECRETS_PATH)
+  serviceAccount = require(`../${SECRETS_PATH}`)
 } else {
-  const serviceAccount = {
+  serviceAccount = {
     type: process.env.type,
     project_id: process.env.project_id,
     private_key_id: process.env.private_key_id,

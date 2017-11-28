@@ -1,5 +1,6 @@
 node_modules
 secrets.json
 gitsecrets.json
+angoliasecrets.json
 .DS_Store
 tmp

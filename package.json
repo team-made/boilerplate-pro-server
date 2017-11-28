@@ -11,6 +11,7 @@
     "start-dev": "NODE_ENV='development' nodemon server --ignore tmp/"
   },
   "dependencies": {
+    "algoliasearch": "^3.24.6",
     "axios": "^0.17.1",
     "bluebird": "^3.5.1",
     "body-parser": "^1.18.2",
@@ -18,6 +19,7 @@
     "express": "^4.16.2",
     "firebase-admin": "^5.5.0",
     "fs-extra": "^4.0.2",
+    "lodash": "^4.17.4",
     "morgan": "^1.9.0",
     "node-schedule": "^1.2.5",
     "simple-git": "^1.82.0"
