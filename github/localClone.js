@@ -160,7 +160,6 @@ class Cloner {
           console.log(
             `--> successfully removed ( ${localPath}/${this.destinationRepo} )!`
           )
-          this.cloneLocal()
         })
         .then(_ => {
           console.log('-- -- -- -- -- COMPLETE -- -- -- -- -- ')
