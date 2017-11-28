@@ -3,6 +3,9 @@ const chunk = lodash.chunk
 const index = require('./index.js')
 
 function sendToAlgolia(records) {
+  records.forEach(record => {
+    record.objectID = record.id
+  })
   console.log(`--> trying to store ${records.length} to Algolia`)
   const chunks = chunk(records, 1000)
   chunks.map(batch =>
