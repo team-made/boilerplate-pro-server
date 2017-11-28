@@ -23,6 +23,10 @@ if (fs.existsSync(SECRETS_PATH)) {
 // firebase setup
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
+  projectId: 'boilerplate-pro',
+  storageBucket: 'boilerplate-pro.appspot.com',
+  authDomain: 'boilerplate-pro.firebaseapp.com',
+  databaseURL: 'https://boilerplate-pro.firebaseio.com'
 })
 
 const db = admin.firestore()
