@@ -160,8 +160,6 @@ class Cloner {
           console.log(
             `--> successfully removed ( ${localPath}/${this.destinationRepo} )!`
           )
-        })
-        .then(_ => {
           console.log('-- -- -- -- -- COMPLETE -- -- -- -- -- ')
         })
         .catch(err => console.error('FAIL!! FAIL!! FAIL!!: ', err))
@@ -171,7 +169,9 @@ class Cloner {
       fs
         .remove(`${localPath}/${this.destinationRepo}`)
         .then(() => {
-          console.log('successfully removed old repo folder!')
+          console.log(
+            'successfully removed old repo folder! Restarting clone process.'
+          )
           this.cloneLocal()
         })
         .catch(err => {

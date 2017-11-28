@@ -1,76 +1,39 @@
 const router = require('express').Router()
 const axios = require('axios')
 const Cloner = require('./localClone') // git locally
+const { getRateLimit, getLanguages, gatherRepos } = require('./utils')
 
 router.post('/hyperClone', (req, res, next) => {
   console.log('hello!')
   console.log(req.body)
   const { repoName, githubUsername, githubToken, name, owner } = req.body
   const clone = new Cloner(repoName, githubUsername, githubToken, name, owner)
-  res.sendStatus(200)
+  res.status(200).send('OK')
 })
 
-// const { getGitHub, search, getLanguages, getRateLimit } = require('./utils')
+router.get('/limit', (req, res, next) => {
+  getRateLimit()
+    .then(res => res.data)
+    .then(results => {
+      results.resources.core.converted = new Date(
+        results.resources.core.reset * 1000
+      )
+      results.resources.search.converted = new Date(
+        results.resources.search.reset * 1000
+      )
+      results.resources.graphql.converted = new Date(
+        results.resources.graphql.reset * 1000
+      )
+      results.rate.converted = new Date(results.rate.reset * 1000)
+      res.json(results)
+    })
+    .catch(next)
+})
 
-// const caches = db.collection('caches')
-// const boilerplates = db.collection('boilerplates')
-
-// const date = new Date()
-// const cacheDate =
-//   date.getMonth() + 1 + '-' + date.getDate() + '-' + date.getFullYear()
-
-// let interval
-
-// // posts result batch to firestore
-// // takes an array of repos from github
-// function saveBatch(results) {
-//   console.log('--> now attempting to store repos')
-//   const batch = db.batch()
-//   results.forEach(repo => {
-//     const id = repo.id.toString()
-//     batch.set(db.collection('boilerplates').doc(id), repo)
-//   })
-//   return batch.commit().then(data => {
-//     console.log('-->', data.length, 'repos saved')
-//   })
-// }
-
-// // gather creates get request for every page of search
-// // takes a limit for the number of pages to gather
-// // and send to save batch
-// async function gather(limit) {
-//   if (!limit) limit = 1
-//   let pagePointer = 1
-//   results = []
-
-//   while (pagePointer <= limit) {
-//     let result = await search(pagePointer)
-//     result = result.items
-//     console.log(
-//       'Getting Page #',
-//       pagePointer,
-//       ' | repos found on page:',
-//       result.length
-//     )
-//     results = results.concat(result)
-//     pagePointer++
-//   }
-//   console.log('--------Total amount of results:', results.length)
-//   saveBatch(results)
-//   return results
-// }
-
-// router.get('/limit', (req, res, next) => {
-//   getRateLimit().then(results => {
-//     res.json(results)
-//   })
-// })
-
-// router.get('/loadToStore', (req, res, next) => {
-//   const items = gather(5)
-//   console.log('items length', items.length)
-//   res.json(items)
-// })
+router.get('/loadToStore', (req, res, next) => {
+  gatherRepos(5)
+  res.send('GATHERING')
+})
 
 // router.get('/languagesForStoreItems', (req, res, next) => {
 //   console.log('....beginning to fetch languages for repos')
@@ -96,28 +59,28 @@ router.post('/hyperClone', (req, res, next) => {
 //     .catch(next)
 // })
 
-// router.get('/', (req, res, next) => {
-//   console.log('hit')
-//   // res.send(cacheDate)
-//   caches
-//     .doc(cacheDate)
-//     .get()
-//     .then(doc => {
-//       console.log('... checking if we ran the cache today')
-//       if (!doc.exists) {
-//         console.log('we have not run the cache today' + cacheDate)
-//         return caches
-//           .doc(cacheDate)
-//           .set({ retrieved: true })
-//           .then(_ => gather(3))
-//           .then(stored => res.json(stored))
-//           .catch(next)
-//       } else {
-//         console.log('already cached')
-//         res.send(`already cached ${cacheDate}`)
-//       }
-//     })
-//     .catch(next)
-// })
+router.get('/', (req, res, next) => {
+  console.log('hit')
+  // res.send(cacheDate)
+  caches
+    .doc(cacheDate)
+    .get()
+    .then(doc => {
+      console.log('... checking if we ran the cache today')
+      if (!doc.exists) {
+        console.log('we have not run the cache today' + cacheDate)
+        return caches
+          .doc(cacheDate)
+          .set({ retrieved: true })
+          .then(_ => gather(3))
+          .then(stored => res.json(stored))
+          .catch(next)
+      } else {
+        console.log('already cached')
+        res.send(`already cached today ${cacheDate}`)
+      }
+    })
+    .catch(next)
+})
 
 module.exports = router
