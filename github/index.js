@@ -112,12 +112,6 @@ router.get('/loadToStore', (req, res, next) => {
       pageLimit: 5
     },
     {
-      term: 'boilerplate',
-      sortBy: '',
-      orderBy: '',
-      pageLimit: 1
-    },
-    {
       term: 'starter kit',
       sortBy: '',
       orderBy: '',
