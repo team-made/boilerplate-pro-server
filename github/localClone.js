@@ -232,9 +232,11 @@ class Cloner {
             .update({ status: `DONE` })
         })
         .then(_ => {
-          return db
-            .collection('install-count')
-            .doc(this.sourceUser + '/' + this.sourceRepo)
+          // for future counting of repo installs
+          // return db
+          //   .collection('install-count')
+          //   .doc(this.sourceUser + '/' + this.sourceRepo)
+          return null
         })
         .catch(err => {
           console.error('-> FINAL FAIL!! : ', err)
