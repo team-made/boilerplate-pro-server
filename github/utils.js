@@ -166,15 +166,16 @@ function getRepoAddInfo(repo) {
   repoWithAddInfo.objectID = parseInt(id)
   return whichLangDep(repoWithAddInfo.language)(ownerSlashName)
     .then(dependencies => {
-      console.log(
-        ` = = = = = = = = = = = = = = = = = = DEPENDENCIES: ${dependencies}`
-      )
+      // dependencies = JSON.stringify(dependencies)
+      // console.log(
+      //   ` = = = = = = = = = = = = = = = = = = DEPENDENCIES: ${dependencies}`
+      // )
       repoWithAddInfo.uses = dependencies || false
-      console.log(
-        ` = = = = = = = = = = = = = = = = = = repoWithAddInfo.uses: ${
-          repoWithAddInfo.uses
-        }`
-      )
+      // console.log(
+      //   ` = = = = = = = = = = = = = = = = = = repoWithAddInfo.uses: ${
+      //     repoWithAddInfo.uses
+      //   }`
+      // )
       return getReadMe(ownerSlashName)
     })
     .catch(noReadMe => {

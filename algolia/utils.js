@@ -13,13 +13,17 @@ function sendToAlgolia(records) {
     const smallBatch = batch.map(repo => {
       return lodash.pick(repo, [
         'objectID',
+        'stargazers_count',
+        'watchers_count',
+        'forks_count',
         'id',
         'name',
         'full_name',
         'owner',
         'description',
         'language',
-        'uses'
+        'uses',
+        'fork'
       ])
     })
     index.addObjects(smallBatch, (err, contents) => {
