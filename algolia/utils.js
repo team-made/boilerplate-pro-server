@@ -9,21 +9,35 @@ function sendToAlgolia(records) {
       chunks.length
     } chunks`
   )
-  chunks.map((batch, batchNumber) =>
-    index.addObjects(batch, (err, contents) => {
+  chunks.map((batch, batchNumber) => {
+    const smallBatch = batch.map(repo => {
+      return lodash.pick(repo, [
+        'objectID',
+        'id',
+        'name',
+        'full_name',
+        'owner',
+        'description',
+        'language',
+        'uses'
+      ])
+    })
+    index.addObjects(smallBatch, (err, contents) => {
       if (err)
         console.log(
-          `--> ALGOLIA (CHUNK ${batchNumber}): FAIL! we had an error: ${err}`
+          `--> ALGOLIA (CHUNK ${batchNumber + 1} of ${
+            chunks.length
+          }): FAIL! we had an error: ${err}`
         )
       if (contents) {
         console.log(
-          `--> ALGOLIA (CHUNK ${
-            batchNumber
+          `--> ALGOLIA (CHUNK ${batchNumber + 1} of ${
+            chunks.length
           }): SUCCESS! we have some contents: ${contents}`
         )
       }
     })
-  )
+  })
 }
 
 module.exports = sendToAlgolia

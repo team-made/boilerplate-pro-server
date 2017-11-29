@@ -1,4 +1,3 @@
-const { firebase } = require('@firebase/app/dist/cjs')
 const cred = require('../github-auth')
 const { db } = require('../firebase-auth')
 const sendToAlgolia = require('../algolia/utils.js')
@@ -7,19 +6,12 @@ const lodash = require('lodash')
 const chunk = lodash.chunk
 
 const axios = require('axios')
-const date = new Date()
 
 // variables necessary for these utilities
 const configuration = { headers: { 'User-Agent': 'BoilerPlatePro' } }
 const serverID = `client_id=${cred.GITHUB_CLIENT_ID}&client_secret=${
   cred.GITHUB_CLIENT_SECRET
 }`
-
-const caches = db.collection('caches')
-const boilerplates = db.collection('boilerplates')
-
-const cacheDate =
-  date.getMonth() + 1 + '-' + date.getDate() + '-' + date.getFullYear()
 
 // get github returns axios on url with options
 function getGitHub(url, appended = false) {
@@ -35,7 +27,7 @@ function search(
   order = 'desc',
   page = 1
 ) {
-  const criteria = `?q=${query}&sort=${sort}&order=${order}&per_page=100&page=${
+  const criteria = `?q=${query}&sort=${sort}&order=${order}&per_page=1&page=${
     page
   }`
   return getGitHub(`/search/repositories${criteria}`, true).then(
@@ -43,43 +35,60 @@ function search(
   )
 }
 
+// takes a large array and breaks it into chunks for easier posting
+// returns an array consisting of arrays.
+// Nested arrays are chunks of original bigArray data
+function chunkArray(bigArray) {
+  const CHUNK_SIZE = 500
+  return chunk(bigArray, CHUNK_SIZE)
+}
+
 // posts result batch to firestore
 // takes an array of repos from github
 function sendToFireStore(results) {
-  const chunks = chunk(results, 1000)
+  const chunks = chunkArray(results)
   console.log(
-    `--> FIRESTORE: .... now attempting to store ${
+    ` --> FIRESTORE: .... now attempting to store ${
       results.length
     } repos split into ${chunks.length} chunks`
   )
   chunks.map((batch, batchNumber) => {
     const batchStore = db.batch()
     batch.forEach(repo => {
-      const id = repo.id.toString()
-      batch.set(boilerplates.doc(id), repo)
+      const id = repo.id
+      console.log('==============================', id)
+      const repoRef = db.collection('boilerplates').doc(id.toString())
+      const storeRepo = lodash.cloneDeep(repo)
+      batchStore.set(repoRef, repo)
     })
     batchStore
       .commit()
       .then(data => {
         console.log(
-          `--> FIRESTORE (CHUNK ${batchNumber}): SUCCESS! ${
-            data.length
-          } repos saved`
+          ` --> FIRESTORE (CHUNK ${batchNumber + 1} of ${
+            chunks.length
+          }): SUCCESS! ${data.length} repos saved`
         )
       })
       .catch(err =>
-        console.log(`--> FIRESTORE (CHUNK ${batchNumber}): ERROR! saving. err`)
+        console.log(
+          ` --> FIRESTORE (CHUNK ${batchNumber + 1} of ${
+            chunks.length
+          }): ERROR! saving.`,
+          err
+        )
       )
   })
 }
 
+// returns a promise that will fulfill with search results for X pages of query search
 function gatherRepos(
   query,
   sort = '',
   order = '',
   limit = 1,
   initialDelay = 0,
-  delayIncrement = 10000
+  delayIncrement = 8000
 ) {
   if (!query) throw new Error('Missing search query in gatherRepos')
   const searchPagePromiseArr = []
@@ -100,14 +109,6 @@ function gatherRepos(
           `.... now resolving search for ${query} on page ${currPage}`
         )
         return resolve(search(query, sort, order, currPage))
-        // console.log(
-        //   ' - FAKE ASYNC CALL BEING DONE FOR',
-        //   query,
-        //   sort,
-        //   order,
-        //   currPage
-        // )
-        // return resolve([{ id: 1, page: currPage }, { id: 2, page: currPage }])
       }
       setTimeout(resolveSearch, delay)
     })
@@ -159,14 +160,16 @@ function whichLangDep(lang) {
 // final promise returns new repo object with add info
 function getRepoAddInfo(repo) {
   const ownerSlashName = repo.full_name
+  const id = repo.id
   let repoWithAddInfo = lodash.cloneDeep(repo)
+  repoWithAddInfo.objectID = parseInt(id)
   return whichLangDep(repoWithAddInfo.language)(ownerSlashName)
     .then(dependencies => {
       repoWithAddInfo.uses = dependencies
       return getReadMe(ownerSlashName)
     })
     .catch(noReadMe => {
-      console.log(`...no readme file found for ${ownerSlashName}`)
+      console.log(` - no readme file found for ${ownerSlashName}`)
       return 'no readme file found'
     })
     .then(readme => {
@@ -175,6 +178,7 @@ function getRepoAddInfo(repo) {
     })
 }
 
+// returns a promise.all to fetch additional info for input array of repo objects
 function getAllReposInfo(repos, initialDelay = 4000, delayIncrement = 4000) {
   const promisesArr = []
   for (
@@ -185,16 +189,16 @@ function getAllReposInfo(repos, initialDelay = 4000, delayIncrement = 4000) {
     const getRepoInfo = new Promise((resolve, reject) => {
       const currPage = index + 1
       const currRepo = repos[index]
-      console.log(
-        `.... making new promise to get additional info for ${
-          currRepo.full_name
-        } ( repo ${currPage}  of ${repos.length}) delay: ${delay}`
-      )
+      // console.log(
+      //   `.... making new promise to get additional info for ${
+      //     currRepo.full_name
+      //   } (repo ${currPage}  of ${repos.length}) delay: ${delay}`
+      // )
       const resolveInfo = () => {
         console.log(
-          `.... now resolving additional info for ${
-            currRepo.full_name
-          } ( repo ${currPage}  of ${repos.length})`
+          `.... now resolving additional info for ${currRepo.full_name} (repo ${
+            currPage
+          }  of ${repos.length})`
         )
         return resolve(getRepoAddInfo(currRepo))
       }
@@ -207,7 +211,7 @@ function getAllReposInfo(repos, initialDelay = 4000, delayIncrement = 4000) {
     const flat = lodash.flattenDeep(results)
     console.log(
       `[[[[[[[[[[[[ gathered all additional info for ${
-        results.length
+        flat.length
       } repos ]]]]]]]]]]]]`
     )
     return flat
@@ -235,11 +239,12 @@ function getRateLimit() {
 
 function base64Decode(b64string) {
   const buff = new Buffer(b64string, 'base64')
-  // console.log('readme:', )
   return buff.toString('ascii')
 }
 
-function magicSearch(searchTermsArray) {
+// input: an array of search term objects (keys: term, sortBy, orderBy, pageLimit)
+// returns a promise that will completed requested search and store results
+function searchMaster(searchTermsArray) {
   // delay before starting search
   const initDelay = 1000
   // how much time to spend between queries for a sningle search page
@@ -247,9 +252,9 @@ function magicSearch(searchTermsArray) {
   const searchPromiseArr = []
 
   searchTermsArray.forEach((searchItem, searchTermNumber) => {
-    const NEW_INIT_DELAY = !searchTermNumber
-      ? initDelay
-      : incrementDelay * (searchTermNumber + 1) + initDelay
+    const NEW_INIT_DELAY = searchTermNumber
+      ? incrementDelay * searchTermNumber + initDelay
+      : initDelay
 
     searchPromiseArr.push(
       gatherRepos(
@@ -263,28 +268,93 @@ function magicSearch(searchTermsArray) {
     )
   })
 
-  return Promise.all(searchPromiseArr)
-    .then(results => {
-      const flat = lodash.flattenDeep(results)
-      console.log(`[[[[[[[[[ TOTAL REPOS SCRAPED: ${flat.length} ]]]]]]]]]`)
-      const unique = lodash.uniqBy(flat, 'id')
-      console.log(
-        `[[[[[[[[[ TOTAL UNIQUE REPOS SCRAPED: ${unique.length} ]]]]]]]]]`
-      )
-      return unique
-    })
+  return Promise.all(searchPromiseArr).then(results => {
+    const flat = lodash.flattenDeep(results)
+    console.log(`[[[[[[[[[ TOTAL REPOS SCRAPED: ${flat.length} ]]]]]]]]]`)
+    const unique = lodash.uniqBy(flat, 'id')
+    console.log(
+      `[[[[[[[[[ TOTAL UNIQUE REPOS SCRAPED: ${unique.length} ]]]]]]]]]`
+    )
+    return unique
+  })
+}
+
+function test(searchTermsArray) {
+  const hold_array = searchTermsArray
+  return setRepoUpdateState().then(_ => {
+    console.log('hold array', hold_array, 'searchTermsArray', searchTermsArray)
+  })
+}
+
+// The function that does it all!!
+function searchParseCache(searchTermsArray) {
+  return setRepoUpdateState()
+    .then(_ => searchMaster(searchTermsArray))
     .then(uniqueRepos => {
-      return getAllReposInfo(uniqueRepos)
+      return getAllReposInfo(uniqueRepos, 2000, 3000)
     })
     .then(finalRepos => {
-      // sendToFireStore(finalRepos)
-      // sendToAlgolia(finalRepos)
+      console.log(`--> --> --> ${finalRepos.length} <-- <-- <--`)
+      console.log(
+        `[[[[[[[[[[[[[[ SENDING OFF REPOS & INFO FOR SAVING ]]]]]]]]]]]]]]`
+      )
+      repoCountStats(finalRepos.length)
+      sendToFireStore(finalRepos)
+      sendToAlgolia(finalRepos)
       return finalRepos
     })
 }
 
+// returns a promise
+// updates firestore to indicate cache has begun with start timestamp
+function setRepoUpdateState() {
+  const now = new Date()
+  console.log(
+    `[[[[[[[[[[[[ TELLING FIREBASE REPO CACHE UPDATE HAS BEGUN ]]]]]]]]]]]]`
+  )
+  return db
+    .collection('site-stats')
+    .doc('repos')
+    .update({ status: 'updating', lastCacheStart: now })
+    .then(_ => {
+      return console.log(
+        ` --> FIREBASE: SUCCESS! updated db cache status - ${now}`
+      )
+    })
+    .catch(err =>
+      console.log(
+        ` --> FIREBASE: FAIL! could not tell db we started cache\n\n`,
+        err
+      )
+    )
+}
+
+// returns a promise
+// updates firestore with complete status, repo count, and finish timestamp
+function repoCountStats(repoCount) {
+  const now = new Date()
+  const count = repoCount
+  return db
+    .collection('site-stats')
+    .doc('repos')
+    .update({ count: repoCount, lastCacheEnd: now, status: 'done' })
+    .then(_ => {
+      console.log(
+        ` --> FIREBASE: SUCCESS! updated site stats to show new repo count (${
+          count
+        }) on ${now}`
+      )
+    })
+    .catch(err =>
+      console.error(
+        ` --> FIREBASE: FAIL! could not update site stats with repo count\n\n`,
+        err
+      )
+    )
+}
+
 module.exports = {
-  magicSearch,
+  searchMaster,
   getRateLimit,
   getLanguages,
   gatherRepos,
@@ -292,5 +362,10 @@ module.exports = {
   getReadMe,
   base64Decode,
   getRepoAddInfo,
-  getAllReposInfo
+  getAllReposInfo,
+  sendToFireStore,
+  repoCountStats,
+  setRepoUpdateState,
+  test,
+  searchParseCache
 }
