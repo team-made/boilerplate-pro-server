@@ -3,19 +3,41 @@ const chunk = lodash.chunk
 const index = require('./index.js')
 
 function sendToAlgolia(records) {
-  records.forEach(record => {
-    record.objectID = record.id
-  })
-  console.log(`--> ALGOLIA: trying to store ${records.length} repos`)
   const chunks = chunk(records, 1000)
-  chunks.map(batch =>
-    index.addObjects(batch, (err, contents) => {
-      if (err) console.log(`--> ALGOLIA: FAIL! we had an error: ${err}`)
+  console.log(
+    `--> ALGOLIA: .... trying to store ${records.length} repos split into ${
+      chunks.length
+    } chunks`
+  )
+  chunks.map((batch, batchNumber) => {
+    const smallBatch = batch.map(repo => {
+      return lodash.pick(repo, [
+        'objectID',
+        'id',
+        'name',
+        'full_name',
+        'owner',
+        'description',
+        'language',
+        'uses'
+      ])
+    })
+    index.addObjects(smallBatch, (err, contents) => {
+      if (err)
+        console.log(
+          `--> ALGOLIA (CHUNK ${batchNumber + 1} of ${
+            chunks.length
+          }): FAIL! we had an error: ${err}`
+        )
       if (contents) {
-        console.log(`--> ALGOLIA: SUCCESS! we have some contents: ${contents}`)
+        console.log(
+          `--> ALGOLIA (CHUNK ${batchNumber + 1} of ${
+            chunks.length
+          }): SUCCESS! we have some contents: ${contents}`
+        )
       }
     })
-  )
+  })
 }
 
 module.exports = sendToAlgolia

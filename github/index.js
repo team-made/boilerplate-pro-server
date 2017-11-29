@@ -1,7 +1,91 @@
 const router = require('express').Router()
 const axios = require('axios')
 const Cloner = require('./localClone') // git locally
-const { getRateLimit, getLanguages, gatherRepos } = require('./utils')
+const {
+  getRateLimit,
+  getLanguages,
+  gatherRepos,
+  getPackageJSON,
+  getReadMe,
+  base64Decode,
+  magicSearch,
+  getRepoAddInfo,
+  getAllReposInfo,
+  repoCountStats,
+  test,
+  setRepoUpdateState,
+  sendToFireStore,
+  searchParseCache
+} = require('./utils')
+
+// router.get('/test', (req, res, next) => {
+//   test(['test', 'data'])
+//     .then(_ => {
+//       res.send('OK')
+//     })
+//     .catch(next)
+// })
+
+// router.get('/setRepoUpdateState', (req, res, next) => {
+//   setRepoUpdateState()
+//     .then(_ => {
+//       res.send('OK')
+//     })
+//     .catch(next)
+// })
+
+// router.get('/repoCountStats', (req, res, next) => {
+//   repoCountStats(843).then(_ => {
+//     res.send('OK')
+//   })
+// })
+
+// router.get('/getAllReposInfo', (req, res, next) => {
+//   getAllReposInfo([
+//     {
+//       full_name: 'team-made/boilerplate-pro',
+//       language: 'JavaScript'
+//     },
+//     {
+//       full_name: 'team-made/boilerplate-pro-server',
+//       language: 'JavaScript'
+//     }
+//   ])
+//     .then(response => res.json(response))
+//     .catch(next)
+// })
+
+// router.get('/getAdditionalRepoInfo', (req, res, next) => {
+//   getAdditionalRepoInfo({
+//     full_name: 'team-made/boilerplate-pro',
+//     language: 'JavaScript'
+//   })
+//     .then(response => res.json(response))
+//     .catch(next)
+// })
+
+// router.get('/json', (req, res, next) => {
+//   getPackageJSON('team-made/boilerplate-pro-server')
+//     .then(file => {
+//       res.json(file)
+//     })
+//     .catch(next)
+// })
+
+// router.get('/readme', (req, res, next) => {
+//   getReadMe('team-made/boilerplate-pro')
+//     .then(info => {
+//       res.send(info)
+//     })
+//     .catch(next)
+// })
+// router.get('/languages', (req, res, next) => {
+//   getLanguages('team-made/boilerplate-pro')
+//     .then(info => {
+//       res.send(info)
+//     })
+//     .catch(next)
+// })
 
 router.post('/hyperClone', (req, res, next) => {
   console.log('hello!')
@@ -13,74 +97,33 @@ router.post('/hyperClone', (req, res, next) => {
 
 router.get('/limit', (req, res, next) => {
   getRateLimit()
-    .then(res => res.data)
     .then(results => {
-      results.resources.core.converted = new Date(
-        results.resources.core.reset * 1000
-      )
-      results.resources.search.converted = new Date(
-        results.resources.search.reset * 1000
-      )
-      results.resources.graphql.converted = new Date(
-        results.resources.graphql.reset * 1000
-      )
-      results.rate.converted = new Date(results.rate.reset * 1000)
       res.json(results)
     })
     .catch(next)
 })
 
 router.get('/loadToStore', (req, res, next) => {
-  gatherRepos(1)
-  res.send('GATHERING')
-})
-
-// router.get('/languagesForStoreItems', (req, res, next) => {
-//   console.log('....beginning to fetch languages for repos')
-//   res.send('in proccess...')
-//   boilerplates
-//     .get()
-//     .then(snapshot => {
-//       snapshot.forEach(doc => {
-//         getLanguages(doc.data().full_name)
-//           .then(languages => {
-//             console.log('ID#', doc.id, '\t\tlanguages:', languages)
-//             return boilerplates
-//               .doc(doc.id)
-//               .set({ languages: languages })
-//               .then(_ => {
-//                 console.log(doc.data().full_name, ' --> languages:', languages)
-//               })
-//           })
-//           .catch(error => console.log(error))
-//         console.log(doc.id, '\t\t', doc.data().full_name)
-//       })
-//     })
-//     .catch(next)
-// })
-
-router.get('/', (req, res, next) => {
-  console.log('hit')
-  // res.send(cacheDate)
-  caches
-    .doc(cacheDate)
-    .get()
-    .then(doc => {
-      console.log('... checking if we ran the cache today')
-      if (!doc.exists) {
-        console.log('we have not run the cache today' + cacheDate)
-        return caches
-          .doc(cacheDate)
-          .set({ retrieved: true })
-          .then(_ => gather(3))
-          .then(stored => res.json(stored))
-          .catch(next)
-      } else {
-        console.log('already cached')
-        res.send(`already cached today ${cacheDate}`)
-      }
+  searchParseCache([
+    {
+      term: 'boilerplate',
+      sortBy: 'stars',
+      orderBy: 'desc',
+      pageLimit: 1
+    },
+    {
+      term: 'starter kit',
+      sortBy: '',
+      orderBy: '',
+      pageLimit: 1
+    }
+  ])
+    .then(results => {
+      console.log('FINAL RESULTS LENGTH', results.length)
+      console.log(results[3])
     })
-    .catch(next)
+    .catch(err => console.log('ERROR :::', err))
+  res.send('GATHERING')
 })
 
 module.exports = router

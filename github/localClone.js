@@ -231,8 +231,13 @@ class Cloner {
             .doc(this.destinationRepo)
             .update({ status: `DONE` })
         })
+        .then(_ => {
+          return db
+            .collection('install-count')
+            .doc(this.sourceUser + '/' + this.sourceRepo)
+        })
         .catch(err => {
-          console.error('FAIL!! FAIL!! FAIL!!: ', err)
+          console.error('-> FINAL FAIL!! : ', err)
           return db
             .collection('users')
             .doc(this.userID.toString())
