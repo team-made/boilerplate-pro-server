@@ -27,7 +27,7 @@ function search(
   order = 'desc',
   page = 1
 ) {
-  const criteria = `?q=${query}&sort=${sort}&order=${order}&per_page=1&page=${
+  const criteria = `?q=${query}&sort=${sort}&order=${order}&per_page=100&page=${
     page
   }`
   return getGitHub(`/search/repositories${criteria}`, true).then(
@@ -88,7 +88,7 @@ function gatherRepos(
   order = '',
   limit = 1,
   initialDelay = 0,
-  delayIncrement = 8000
+  delayIncrement = 7000
 ) {
   if (!query) throw new Error('Missing search query in gatherRepos')
   const searchPagePromiseArr = []
@@ -291,7 +291,7 @@ function searchParseCache(searchTermsArray) {
   return setRepoUpdateState()
     .then(_ => searchMaster(searchTermsArray))
     .then(uniqueRepos => {
-      return getAllReposInfo(uniqueRepos, 2000, 3000)
+      return getAllReposInfo(uniqueRepos, 1000, 3000)
     })
     .then(finalRepos => {
       console.log(`--> --> --> ${finalRepos.length} <-- <-- <--`)
