@@ -301,7 +301,7 @@ function searchParseCache(searchTermsArray) {
   return setRepoUpdateState()
     .then(_ => searchMaster(searchTermsArray))
     .then(uniqueRepos => {
-      return getAllReposInfo(uniqueRepos, 1000, 3000)
+      return getAllReposInfo(uniqueRepos, 1000, 2000)
     })
     .then(finalRepos => {
       console.log(`--> --> --> ${finalRepos.length} <-- <-- <--`)
