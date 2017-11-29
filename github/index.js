@@ -109,13 +109,13 @@ router.get('/loadToStore', (req, res, next) => {
       term: 'boilerplate',
       sortBy: 'stars',
       orderBy: 'desc',
-      pageLimit: 1
+      pageLimit: 5
     },
     {
       term: 'starter kit',
       sortBy: '',
       orderBy: '',
-      pageLimit: 1
+      pageLimit: 5
     }
   ])
     .then(results => {
