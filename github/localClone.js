@@ -182,6 +182,9 @@ class Cloner {
           )
         })
         .then(_ => {
+          return fs.outputJson(`${localPath}/${this.destinationRepo}/app.json`, {name: this.destinationRepo, description: 'Built with Boilerplate Pro'})
+        })
+        .then(_ => {
           console.log('SUCCESS! now adding all files pulled to new commit')
           return git(`${localPath}/${this.destinationRepo}`).add('./*')
         })
@@ -265,5 +268,23 @@ class Cloner {
     }
   }
 }
+
+//const dummyAppJSON = JSON.stringify()
+
+
+// export const appJSONFileCreator = function () {
+//   let contentObj = {
+//     message: 'f(appJSON):testing github app file creation',
+//     committer: {
+//       name: 'Mitchell Stewart',
+//       email: 'mitchellwstewart@gmail.com'
+//     },
+//     content: `${window.btoa(dummyAppJSON)}`
+//   }
+//   return contentObj
+// }
+
+
+
 
 module.exports = Cloner
