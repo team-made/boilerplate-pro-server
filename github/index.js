@@ -109,18 +109,18 @@ router.get('/loadToStore', (req, res, next) => {
       term: 'boilerplate',
       sortBy: 'stars',
       orderBy: 'desc',
-      pageLimit: 6
+      pageLimit: 1
     },
     {
       term: 'starter kit',
       sortBy: '',
       orderBy: '',
-      pageLimit: 6
+      pageLimit: 1
     }
   ])
     .then(results => {
       console.log('FINAL RESULTS LENGTH', results.length)
-      console.log(results[3])
+      // console.log(results[3])
     })
     .catch(err => console.log('ERROR :::', err))
   res.send('GATHERING')

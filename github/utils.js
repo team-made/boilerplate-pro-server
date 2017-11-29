@@ -39,7 +39,7 @@ function search(
 // returns an array consisting of arrays.
 // Nested arrays are chunks of original bigArray data
 function chunkArray(bigArray) {
-  const CHUNK_SIZE = 500
+  const CHUNK_SIZE = 200
   return chunk(bigArray, CHUNK_SIZE)
 }
 
@@ -59,6 +59,7 @@ function sendToFireStore(results) {
       console.log('==============================', id)
       const repoRef = db.collection('boilerplates').doc(id.toString())
       const storeRepo = lodash.cloneDeep(repo)
+      console.log(`# setting to batch # ${storeRepo.full_name}`)
       batchStore.set(repoRef, repo)
     })
     batchStore
@@ -165,7 +166,15 @@ function getRepoAddInfo(repo) {
   repoWithAddInfo.objectID = parseInt(id)
   return whichLangDep(repoWithAddInfo.language)(ownerSlashName)
     .then(dependencies => {
-      repoWithAddInfo.uses = dependencies
+      console.log(
+        ` = = = = = = = = = = = = = = = = = = DEPENDENCIES: ${dependencies}`
+      )
+      repoWithAddInfo.uses = dependencies || false
+      console.log(
+        ` = = = = = = = = = = = = = = = = = = repoWithAddInfo.uses: ${
+          repoWithAddInfo.uses
+        }`
+      )
       return getReadMe(ownerSlashName)
     })
     .catch(noReadMe => {
@@ -189,16 +198,12 @@ function getAllReposInfo(repos, initialDelay = 4000, delayIncrement = 4000) {
     const getRepoInfo = new Promise((resolve, reject) => {
       const currPage = index + 1
       const currRepo = repos[index]
-      // console.log(
-      //   `.... making new promise to get additional info for ${
-      //     currRepo.full_name
-      //   } (repo ${currPage}  of ${repos.length}) delay: ${delay}`
-      // )
       const resolveInfo = () => {
+        const percent = currPage / repos.length
         console.log(
           `.... now resolving additional info for ${currRepo.full_name} (repo ${
             currPage
-          }  of ${repos.length})`
+          }  of ${repos.length}) [${percent}%]`
         )
         return resolve(getRepoAddInfo(currRepo))
       }
@@ -270,10 +275,14 @@ function searchMaster(searchTermsArray) {
 
   return Promise.all(searchPromiseArr).then(results => {
     const flat = lodash.flattenDeep(results)
-    console.log(`[[[[[[[[[ TOTAL REPOS SCRAPED: ${flat.length} ]]]]]]]]]`)
+    console.log(
+      `[[[[[[[[[[[[[[ TOTAL REPOS SCRAPED: ${flat.length} ]]]]]]]]]]]]]]`
+    )
     const unique = lodash.uniqBy(flat, 'id')
     console.log(
-      `[[[[[[[[[ TOTAL UNIQUE REPOS SCRAPED: ${unique.length} ]]]]]]]]]`
+      `[[[[[[[[[[[[[[[ TOTAL UNIQUE REPOS SCRAPED: ${
+        unique.length
+      } ]]]]]]]]]]]]]]]`
     )
     return unique
   })
