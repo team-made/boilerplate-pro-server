@@ -103,11 +103,15 @@ function gatherRepos(
       console.log(
         `.... making new promise to search for ${query} on page ${
           currPage
-        }  | delayed start in ${delay} ms`
+        } sorted by: ${sort} ordered by: ${order} (limit to ${
+          limit
+        } pages) | delayed start in ${delay} ms`
       )
       const resolveSearch = () => {
         console.log(
-          `.... now resolving search for ${query} on page ${currPage}`
+          `.... now resolving search for ${query} on page ${
+            currPage
+          } sorted by: ${sort} ordered by: ${order} (limit to ${limit} pages)`
         )
         return resolve(search(query, sort, order, currPage))
       }
@@ -200,11 +204,11 @@ function getAllReposInfo(repos, initialDelay = 4000, delayIncrement = 4000) {
       const currPage = index + 1
       const currRepo = repos[index]
       const resolveInfo = () => {
-        const percent = currPage / repos.length
+        const percent = Math.floor(currPage / repos.length * 100)
         console.log(
           `.... now resolving additional info for ${currRepo.full_name} (repo ${
             currPage
-          }  of ${repos.length}) [${percent}%]`
+          }  of ${repos.length}) [${percent}% done]`
         )
         return resolve(getRepoAddInfo(currRepo))
       }
@@ -258,9 +262,7 @@ function searchMaster(searchTermsArray) {
   const searchPromiseArr = []
 
   searchTermsArray.forEach((searchItem, searchTermNumber) => {
-    const NEW_INIT_DELAY = searchTermNumber
-      ? incrementDelay * searchTermNumber + initDelay
-      : initDelay
+    const NEW_INIT_DELAY = incrementDelay * searchTermNumber + initDelay
 
     searchPromiseArr.push(
       gatherRepos(
@@ -301,7 +303,7 @@ function searchParseCache(searchTermsArray) {
   return setRepoUpdateState()
     .then(_ => searchMaster(searchTermsArray))
     .then(uniqueRepos => {
-      return getAllReposInfo(uniqueRepos, 1000, 2000)
+      return getAllReposInfo(uniqueRepos, 5000, 3000)
     })
     .then(finalRepos => {
       console.log(`--> --> --> ${finalRepos.length} <-- <-- <--`)
