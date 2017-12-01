@@ -300,6 +300,16 @@ function test(searchTermsArray) {
 
 // The function that does it all!!
 function searchParseCache(searchTermsArray) {
+  const start = new Date()
+  const finish = () => {
+    const finished = new Date()
+    const total = finished - start
+    console.log(
+      `search process started ${start} and finished ${finished} [TOTAL TIME ${
+        total
+      }]`
+    )
+  }
   return setRepoUpdateState()
     .then(_ => searchMaster(searchTermsArray))
     .then(uniqueRepos => {
@@ -315,6 +325,8 @@ function searchParseCache(searchTermsArray) {
       sendToAlgolia(finalRepos)
       return finalRepos
     })
+    .then(finish)
+    .catch(err => console.log(`err: ${err}`))
 }
 
 // returns a promise
