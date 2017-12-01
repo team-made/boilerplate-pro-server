@@ -3,7 +3,7 @@ const chunk = lodash.chunk
 const index = require('./index.js')
 
 function sendToAlgolia(records) {
-  const chunks = chunk(records, 1000)
+  const chunks = chunk(records, 500)
   console.log(
     `--> ALGOLIA: .... trying to store ${records.length} repos split into ${
       chunks.length
